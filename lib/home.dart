@@ -42,9 +42,9 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
   void _searchWeather() {
     print("Initiating search for $_searchQuery");
     if (_searchQuery != null && _searchQuery!.isNotEmpty) {
-      ref.read(weatherProvider(_searchQuery!));
+      ref.read(weatherProvider(_searchQuery!).notifier).fetchWeather(_searchQuery!);
     } else {
-      print("false");
+      print("No search query provided");
     }
   }
 
@@ -117,7 +117,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                   child: IconButton(
                     icon: const Icon(Icons.search, size: 30),
                     onPressed: () {
-                      print("<<_searchQuery = $_searchQuery >>");
+                      print("<< search weather >>");
                       _searchWeather();
                     },
                   ),
@@ -135,7 +135,27 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                   color: Colors.white,
                   borderRadius: customRadius,
                 ),
-                // child:
+                child: Consumer(
+                  builder: (context, ref, _) {
+                    final weatherState =
+                        ref.watch(weatherProvider(_searchQuery ?? ""));
+
+                    if (weatherState.isLoading) {
+                      return Center(child: CircularProgressIndicator());
+                    }
+
+                    if (weatherState.error != null) {
+                      return Center(
+                          child: Text('Error: ${weatherState.error}'));
+                    }
+                    if (weatherState.weatherData != null) {
+                      return Text(
+                          'Temperature: ${weatherState.weatherData!.current?.tempC}°C');
+                    }
+
+                    return Center(child: Text('請輸入位置以獲取天氣'));
+                  },
+                ),
               ),
             ),
           ),
