@@ -14,7 +14,8 @@ class PlaceSuggestionsNotifier extends StateNotifier<List<String>> {
   PlaceSuggestionsNotifier(this.ref) : super([]);
 
   Future<void> fetchSuggestions(String input) async {
-    if (input != state) {
+    String trimmedInput = input.trim();
+    if (trimmedInput.isNotEmpty && trimmedInput != state){
       final placeApi = ref.read(placeApiProvider);
       try {
         final result = await placeApi.fetchSuggestions(input);

@@ -16,7 +16,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
   final BorderRadiusGeometry customRadius = BorderRadius.circular(10);
   String? _searchQuery = "";
   SearchController searchController = SearchController();
-  Timer? _debounce;
 
   @override
   void initState() {
@@ -31,7 +30,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
   @override
   void dispose() {
     searchController.dispose();
-    _debounce?.cancel();
     super.dispose();
   }
 
@@ -83,13 +81,10 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                           localController.openView();
                         },
                         onChanged: (_) {
-                          if (_debounce?.isActive ?? false) _debounce?.cancel();
-                          _debounce = Timer(const Duration(seconds: 1), () {
-                            setState(() {
-                              ref
-                                  .watch(placeSuggestionsProvider.notifier)
-                                  .fetchSuggestions(localController.text);
-                            });
+                          setState(() {
+                            ref
+                                .watch(placeSuggestionsProvider.notifier)
+                                .fetchSuggestions(localController.text);
                           });
                         },
                       );
