@@ -86,7 +86,12 @@ class WeatherNotifier extends StateNotifier<WeatherState> {
       final weatherData = WeatherData.fromJson(response.data);
       state = WeatherState.success(weatherData);
     } catch (e) {
-      state = WeatherState.error(e.toString());
+      //錯誤處理
+      if (e is DioError && e.response?.statusCode == 400) {
+        state = WeatherState.error("客戶端錯誤 - 請求包含錯誤的語法或無法被滿足");
+      } else {
+        state = WeatherState.error(e.toString());
+      }
     }
   }
 }

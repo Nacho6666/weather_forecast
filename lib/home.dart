@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:weather_forecast/model/weather_data.dart';
 import 'http/place_service.dart';
 import 'http/weather_service.dart';
 
@@ -42,7 +43,9 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
   void _searchWeather() {
     print("Initiating search for $_searchQuery");
     if (_searchQuery != null && _searchQuery!.isNotEmpty) {
-      ref.read(weatherProvider(_searchQuery!).notifier).fetchWeather(_searchQuery!);
+      ref
+          .read(weatherProvider(_searchQuery!).notifier)
+          .fetchWeather(_searchQuery!);
     } else {
       print("No search query provided");
     }
@@ -140,20 +143,32 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                     final weatherState =
                         ref.watch(weatherProvider(_searchQuery ?? ""));
 
+                    //讀取狀態
                     if (weatherState.isLoading) {
                       return Center(child: CircularProgressIndicator());
                     }
 
-                    if (weatherState.error != null) {
-                      return Center(
-                          child: Text('Error: ${weatherState.error}'));
+                    //錯誤狀態
+                    else if (weatherState.error != null) {
+                      if (weatherState.error == "客戶端錯誤 - 請求包含錯誤的語法或無法被滿足") {
+                        return Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Center(
+                              child: Text(
+                                  '錯誤: ${searchController.text} 搜尋無結果, 請試著輸入國家或城市再試一次')),
+                        );
+                      } else {
+                        return Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Center(
+                              child: Text('錯誤: ${weatherState.error}, 請再試一次')),
+                        );
+                      }
+                    } else if (weatherState.weatherData != null) {
+                      return weatherView(weatherState.weatherData);
                     }
-                    if (weatherState.weatherData != null) {
-                      return Text(
-                          'Temperature: ${weatherState.weatherData!.current?.tempC}°C');
-                    }
-
-                    return Center(child: Text('請輸入位置以獲取天氣'));
+                    //初始狀態
+                    return Center(child: Text('請輸入國家或城市以獲取天氣'));
                   },
                 ),
               ),
@@ -167,5 +182,13 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
         child: const Icon(Icons.refresh),
       ),
     );
+  }
+
+  Widget weatherView(WeatherData? weather) {
+    if (weather == null) {
+      return Text("非常抱歉，找不到資料，請再試一次。");
+ㄙ    } else {
+      return Text('Temperature: ${weather.current?.tempC}°C');
+    }
   }
 }
