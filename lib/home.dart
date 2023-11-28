@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:weather_forecast/model/weather_data.dart';
@@ -51,10 +49,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     }
   }
 
-  void _refrash() {
-    setState(() {});
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -84,11 +78,9 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                           localController.openView();
                         },
                         onChanged: (_) {
-                          setState(() {
-                            ref
-                                .watch(placeSuggestionsProvider.notifier)
-                                .fetchSuggestions(localController.text);
-                          });
+                          ref
+                              .watch(placeSuggestionsProvider.notifier)
+                              .fetchSuggestions(localController.text);
                         },
                       );
                     },
@@ -116,11 +108,10 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
               }),
               actions: [
                 Padding(
-                  padding: const EdgeInsets.only(right: 10),
+                  padding: const EdgeInsets.only(right: 15),
                   child: IconButton(
                     icon: const Icon(Icons.search, size: 30),
                     onPressed: () {
-                      print("<< search weather >>");
                       _searchWeather();
                     },
                   ),
@@ -177,7 +168,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _refrash,
+        onPressed: _searchWeather,
         tooltip: 'Increment',
         child: const Icon(Icons.refresh),
       ),
@@ -187,8 +178,111 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
   Widget weatherView(WeatherData? weather) {
     if (weather == null) {
       return Text("非常抱歉，找不到資料，請再試一次。");
-ㄙ    } else {
-      return Text('Temperature: ${weather.current?.tempC}°C');
+    } else {
+      var hourlyForecastsList =
+          weather.forecast?.dayForecasts?[0].hourlyForecasts;
+      return SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                (weather.location?.name != weather.location?.country)
+                    ? '現在位置: ${weather.location?.name}-${weather.location?.country}'
+                    : '現在位置: ${weather.location?.name}',
+                style: TextStyle(fontSize: 20),
+              ),
+              Text('${weather.location?.tzId}'),
+              Text(
+                '經緯度: (${weather.location?.lat},${weather.location?.lon})',
+                style: TextStyle(fontSize: 10),
+              ),
+              Divider(),
+              Text('最後更新時間: ${weather.current?.lastUpdated}'),
+              Text(
+                  '實際溫度: ${weather.current?.tempC}°C /  ${weather.current?.tempF}°F'),
+              Text(
+                  '體感溫度: ${weather.current?.feelslikeC}°C /  ${weather.current?.feelslikeF}°F'),
+              Text('紫外線指數: ${weather.current?.uv}'),
+              Divider(),
+              Text("每小時預報",style: TextStyle(fontSize: 20),),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 8.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Text('時間'),
+                          Text('溫度'),
+                          Text('雨/雪機率'),
+                        ],
+                      ),
+                    ),
+                    ...List.generate(
+                    hourlyForecastsList?.length ?? 0,
+                    (index) => Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 8.0),
+                      child: Card(
+                        elevation: 4,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            children: [
+                              Text(
+                                  '${hourlyForecastsList?[index].time?.split(' ')[1]}'),
+                              Text(
+                                '${hourlyForecastsList?[index].tempC}°C / ${hourlyForecastsList?[index].tempF}°F',
+                                style: TextStyle(fontSize: 11),
+                              ),
+                              Text(
+                                '${hourlyForecastsList?[index].will_it_rain}% / ${hourlyForecastsList?[index].will_it_snow}%',
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),]
+                ),
+              ),
+              Divider(),
+              Text("天氣預測:", style: TextStyle(fontSize: 20)),
+              Text(
+                  "今日溫差:${weather.forecast?.dayForecasts?.first.maxTempC} ~ ${weather.forecast?.dayForecasts?.first.minTempC}°C / ${weather.forecast?.dayForecasts?.first.maxTempF} ~ ${weather.forecast?.dayForecasts?.first.minTempF}°F"),
+              Text(
+                  '最大風速: ${weather.forecast?.dayForecasts?.first.maxWindKph} Km/h'),
+              Text(
+                  '平均濕度: ${weather.forecast?.dayForecasts?.first.avgHumidity}'),
+              Text(
+                  '降水量: ${weather.forecast?.dayForecasts?.first.totalPrecipMm}mm'),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                      '日出時間: ${weather.forecast?.dayForecasts?.first.astro?.sunrise}'),
+                  Text(
+                      '日落時間: ${weather.forecast?.dayForecasts?.first.astro?.sunset}'),
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                      '月出時間: ${weather.forecast?.dayForecasts?.first.astro?.moonrise}'),
+                  Text(
+                      '月落時間: ${weather.forecast?.dayForecasts?.first.astro?.moonset}'),
+                ],
+              ),
+              Text(
+                  '注意事項: ${weather.forecast?.dayForecasts?.first.dayCondition?.text}'),
+            ],
+          ),
+        ),
+      );
     }
   }
 }

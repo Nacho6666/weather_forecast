@@ -12,7 +12,7 @@ final weatherProvider =
 class WeatherClient {
   static const String weather_key = "e89bd8f012934be7af6100013232311";
   final Dio _weatherClient;
-  static const String weatherURL = "https://api.weatherapi.com/v1/current.json";
+  static const String weatherURL = "https://api.weatherapi.com/v1/forecast.json";
 
   WeatherClient()
       : _weatherClient = Dio(BaseOptions(
@@ -30,6 +30,7 @@ class WeatherClient {
           'key': weather_key,
           'q': location,
           'aqi': 'true',
+          'day': 2,
         },
       );
       var data = response.data;
@@ -53,6 +54,16 @@ class WeatherClient {
         print('$prefix  {');
         printFormatted(value, '$prefix    ');
         print('$prefix  }');
+      } else if (value is List) {
+        print('$prefix$key: [');
+        for (var item in value) {
+          if (item is Map) {
+            printFormatted(item, '$prefix    ');
+          } else {
+            print('$prefix    $item');
+          }
+        }
+        print('$prefix]');
       } else {
         print('$prefix  $key: $value');
       }
